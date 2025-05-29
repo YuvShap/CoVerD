@@ -15,10 +15,10 @@ Installation
 ------------
 <Strong>Setup the covering generator:</strong>
 
-It is recommended to set up the generator in a separate virtual environment (venv) to avoid dependency issues.
+Set up the generator in a separate virtual environment (venv) to avoid dependency issues.
 
 ```
-git clone https://github.com/YuvShap/finite-geometry-coverings-construction.git
+git clone --branch v1 https://github.com/YuvShap/finite-geometry-coverings-construction.git
 cd finite-geometry-coverings-construction
 python3 -m venv venv 
 source venv/bin/activate
