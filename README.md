@@ -3,6 +3,11 @@ CoVerD
 CoVerD is a sound and complete L0 robustness verifier for neural networks, implemented as an extension of [Calzone](https://github.com/YuvShap/calzone). CoVerD boosts Calzone performance by employing the idea of *covering verification designs*. 
 For more information, refer to the paper [Boosting Few-Pixel Robustness Verification via Covering Verification Designs [CAV'24]](https://link.springer.com/chapter/10.1007/978-3-031-65630-9_19)
 
+> **News:**<br/>
+> By relying on a more efficient implementation of the covering generator, we now also support finite geometries constructed over prime powers q (previously, only primes were supported).<br/>
+> To run the original version from the paper, please check out the [v1 tag](https://github.com/YuvShap/CoVerD/tree/v1) and follow the instructions there. 
+
+
 Overview
 ========
 CoVerD extends [Calzone](https://github.com/YuvShap/calzone), which is implemented as a module of [ERAN](https://github.com/eth-sri/ERAN). The files and folder associated with CoVerD (or Calzone) start with the prefix 'coverd' (or 'calzone') and can be found in the `tf_verify` directory.<br/>
@@ -18,7 +23,7 @@ Installation
 Set up the generator in a separate virtual environment (venv) to avoid dependency issues.
 
 ```
-git clone --branch v1 https://github.com/YuvShap/finite-geometry-coverings-construction.git
+git clone https://github.com/YuvShap/finite-geometry-coverings-construction.git
 cd finite-geometry-coverings-construction
 python3 -m venv venv 
 source venv/bin/activate
@@ -71,6 +76,7 @@ python3 coverd.py --netname calzone_models/MNIST_ConvSmallPGD.onnx --dataset mni
 * `logname`: the name of the log file (a .json extension will be added), if not specified, a timestamp will be used.<br/>
 * `mean`: the mean used to normalize the data. Must be one value for mnist/fashion (e.g --mean 0.5) and three values for cifar10 (e.g --mean 0.4914 0.4822 0.4465).<br/> If normalization is extracted from the network, this argument will be ignored. If not specified, default values will be used.
 * `std`: the standard deviation used to normalize the data. Must be one value for mnist/fashion (e.g --std 0.5) and three values for cifar10 (e.g --std 0.2470 0.2435 0.2616).<br/> If normalization is extracted from the network, this argument will be ignored. If not specified, default values will be used.
+* `base_seed` : initial seed for randomness. For each image index i, the main process uses the seed base_seed + i. The main process then generates the seeds for the workers based on this seed (default is 42).
 
 Note:
 * Sampling is distributed across `gpu_num` GPUs, so in case `rep_num` is not divisible by `gpu_num` the number of samples for each size will be `gpu_num * ceil(rep_num/gpu_num)`.

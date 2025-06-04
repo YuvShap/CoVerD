@@ -34,6 +34,8 @@ if __name__ == '__main__':
     parser.add_argument("--logname", type=str, default=None, help="the name of the log file (.json will be added), if not specified timestamp will be used")
     parser.add_argument('--mean', nargs='+', type=float, default=CalzoneConfig.mean, help='the mean used to normalize the data with, ignored if extracted from the network, using a deafault if not provided')
     parser.add_argument('--std', nargs='+', type=float, default=CalzoneConfig.std, help='the standard deviation used to normalize the data with, ignored if extracted from the network, using a deafault if not provided')
+    parser.add_argument('--base_seed', type=int, default=CalzoneConfig.base_seed, help='the base seed')
+
 
     args = parser.parse_args()
     for k, v in vars(args).items():
@@ -166,7 +168,8 @@ if __name__ == '__main__':
                                                                  t=CalzoneConfig.t,
                                                                  sampling=CalzoneConfig.rep_num,
                                                                  timeout=CalzoneConfig.timeout,
-                                                                 dataset=dataset)
+                                                                 dataset=dataset,
+                                                                 seed=CalzoneConfig.base_seed + i)
             analysis_summary = l_zero_robustness_analyzer.analyze()
             image_results['analysis_summary'] = analysis_summary
 

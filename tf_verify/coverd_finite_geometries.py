@@ -24,7 +24,7 @@ class Geometry:
 
 
 def get_possible_geometries(num_of_pixels, t):
-    with open('coverd_primes.txt', 'r') as f:
+    with open('coverd_prime_powers.txt', 'r') as f:
         for line in f:
             q = int(line)
             if num_of_pixels / q < 1:

@@ -1,7 +1,7 @@
 import time
 import math
 from multiprocessing.connection import Client, Listener
-from random import shuffle, sample
+import random
 import numpy as np
 from calzone_utils import normalize
 from subprocess import Popen
@@ -26,7 +26,8 @@ class LZeroGpuWorker:
             # Every iteration of this loop is one image
             message = conn.recv()
             while message != 'terminate':
-                image, label, sampling_lower_bound, sampling_upper_bound, repetitions = message
+                seed, image, label, sampling_lower_bound, sampling_upper_bound, repetitions = message
+                random.seed(seed)
                 sampling_counts, sampling_successes, sampling_time = self.__sample(image, label, sampling_lower_bound, sampling_upper_bound, repetitions)
                 conn.send((sampling_counts, sampling_successes, sampling_time))
                 worker_index, number_of_workers, image, label, geometry, chosen_points, refinement_strategy = conn.recv()
@@ -42,7 +43,7 @@ class LZeroGpuWorker:
         for size in range(sampling_lower_bound, sampling_upper_bound + 1):
             sampling_counts[size - sampling_lower_bound] = repetitions
             for i in range(0, repetitions):
-                pixels = sample(population, size)
+                pixels = random.sample(population, size)
                 start = time.time()
                 verified = self.verify_group(image, label, pixels)
                 duration = time.time() - start
@@ -76,7 +77,7 @@ class LZeroGpuWorker:
             chosen_string = ','.join((str(point) for point in chosen_points))
             blocks_generator_process = Popen(
                 ["../../finite-geometry-coverings-construction/venv/bin/python3",
-                 "../../finite-geometry-coverings-construction/main.py",
+                 "../../finite-geometry-coverings-construction/covering_generator_runner.py",
                  "--q", str(geometry.q),
                  "--m", str(geometry.m),
                  "--t", str(t),
@@ -131,19 +132,17 @@ class LZeroGpuWorker:
                                     else:
                                         groups_to_verify = self.__break_failed_group(group_to_verify, refinement_coverings[len(group_to_verify)]) + groups_to_verify
                     conn.send('next')
-                blocks_conn.send('done')
                 message = blocks_conn.recv()
-                if message != 'done':
-                    raise Exception('This should not happen')
-        conn.send(f"done")
+                assert message == 'done'
+                blocks_conn.send('done')
+        conn.send('done')
         message = conn.recv()
-        if message != 'stop':
-            raise Exception('This should not happen')
+        assert message == 'stop'
         conn.send('stopped')
 
     def __break_failed_group(self, pixels, covering):
         permutation = list(pixels)
-        shuffle(permutation)
+        random.shuffle(permutation)
         return [tuple(sorted(permutation[item] for item in block)) for block in covering]
 
     def verify_group(self, image, label, pixels_group):

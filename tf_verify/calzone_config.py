@@ -11,3 +11,4 @@ class CalzoneConfig:
     milp_num = 5
     mean = None
     std = None
+    base_seed = 42

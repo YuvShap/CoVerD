@@ -14,7 +14,7 @@ def decreasing_exp(x, a, b):
 
 
 class LZeroRobustnessAnalyzer:
-    def __init__(self, image_index, image, gpu_workers, cpu_workers, label, t, sampling, timeout, dataset):
+    def __init__(self, image_index, image, gpu_workers, cpu_workers, label, t, sampling, timeout, dataset, seed):
         self.__image_index = image_index
         self.__image = image
         self.__label = label
@@ -29,8 +29,10 @@ class LZeroRobustnessAnalyzer:
             self.__number_of_pixels = 784
         self.__refinement_db_max_v = 200
         self.__refinement_db_max_covering_size = 500000
+        self.__seed = seed
 
     def analyze(self):
+        random.seed(self.__seed)
         analyzer_start_time = time.time()
         print('*******************************************************')
         print(f'Starting to analyze image {self.__image_index}')
@@ -123,7 +125,9 @@ class LZeroRobustnessAnalyzer:
         sampling_upper_bound = self.__refinement_db_max_v
         repetitions = math.ceil(self.__sampling / len(self.__gpu_workers))
         for gpu_worker in self.__gpu_workers:
-            gpu_worker.send((self.__image, self.__label, sampling_lower_bound,
+            # Each worker should use different seed
+            worker_seed = random.randint(0, 2 ** 32 - 1)
+            gpu_worker.send((worker_seed, self.__image, self.__label, sampling_lower_bound,
                              sampling_upper_bound, repetitions))
 
         sampling_counts_vector = np.zeros(sampling_upper_bound - sampling_lower_bound + 1)
@@ -145,7 +149,6 @@ class LZeroRobustnessAnalyzer:
         stop_index = min(indexes[0] + 1, len(success_ratio_vector)) if len(indexes) > 0 else len(success_ratio_vector)
         if stop_index > 1:
             popt, pcov = curve_fit(decreasing_exp, range(sampling_lower_bound, sampling_lower_bound + stop_index), p_vector[:stop_index], maxfev=5000)
-            print(f'a={popt[0]}, b={popt[1]}')
             p_vector[:stop_index] = decreasing_exp(np.asarray(range(sampling_lower_bound, sampling_lower_bound + stop_index)), *popt)
 
         return p_vector, w_vector
